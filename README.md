@@ -1,1 +1,4 @@
-# Initial README !!
+#README
+
+Corten (CTX)
+Solana Token
