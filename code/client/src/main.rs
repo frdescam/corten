@@ -25,25 +25,12 @@ pub fn check_balance(rpc_client: &RpcClient, pubkey: &Pubkey) -> Result<f64, Box
     Ok(rpc_client.get_balance(&pubkey)? as f64 / LAMPORTS_PER_SOL as f64)
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     let rpc_client = RpcClient::new("http://localhost:8899");
-    let keypair = create_keypair();
 
-    request_airdrop(&rpc_client, &keypair.pubkey(), 1.0).unwrap();
-    let balance = check_balance(&rpc_client, &keypair.pubkey()).unwrap();
+    
 
-    println!("Balance : {:.2}", balance);
+    
 
-    let program_id = Pubkey::from_str("FWEKEyaEyxeceM8Tr8YLMRmJsL9UwYejyeDMp7e8aJTn").unwrap();
-
-    let instruction = Instruction::new_with_borsh(program_id, &(), vec![]);
-
-    let mut transaction = Transaction::new_with_payer(&[instruction], Some(&keypair.pubkey()));
-    transaction.sign(&[keypair], rpc_client.get_latest_blockhash().unwrap());
-
-    match rpc_client.send_and_confirm_transaction(&transaction) {
-        Ok(signature) => println!("Transaction Signature: {}", signature),
-        Err(err) => eprintln!("Error sending transaction: {}", err)
-    }
-
+    Ok(())
 }
