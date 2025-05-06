@@ -1,4 +1,4 @@
-use std::{error::Error, str::FromStr};
+use std::{error::Error};
 
 use solana_client::rpc_client::RpcClient;
 
@@ -41,6 +41,8 @@ pub fn check_balance(
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
+
+    println!("En cours");
     let rpc_client = RpcClient::new("http://localhost:8899");
 
     let sender_keypair = create_keypair(); //sender
@@ -91,6 +93,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let signature = rpc_client.send_and_confirm_transaction(&transaction)?;
     println!("✅ Transaction envoyée ! Signature : {}", signature);
+
+    println!("Sender Balance : {:.2}", sender_balance);
+    println!("Receiver Balance : {:.2}", receiver_balance);
+
 
     Ok(())
 }
