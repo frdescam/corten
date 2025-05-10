@@ -1,6 +1,8 @@
 [workspace]
 
 members = [
-    "code/client",
-    "code/program",
+  "code/client",
+  "code/common",
+  "code/program",
+  "deployment/deploy_corten",
 ]
