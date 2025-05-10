@@ -14,9 +14,9 @@ use common::TokenInstructions;
 
 entrypoint!(process_instruction);
 
-fn process_instruction(
+fn process_instruction<'a>(
     program_id: &Pubkey,
-    accounts: &[AccountInfo],
+    accounts: &'a [AccountInfo<'a>],
     instruction_data: &[u8],
 ) -> ProgramResult {
     let accounts_iter = &mut accounts.iter();
@@ -29,42 +29,51 @@ fn process_instruction(
     let instruction = TokenInstructions::try_from_slice(instruction_data)?;
 
     match instruction {
-        TokenInstructions::AskMint => {
-            let amount = 100 * 1_000_000;
-
-            let instruction = mint_to(
-                spl_token_program.key,
-                corten_mint.key,
-                corten_ata.key,
-                corten_wallet.key,
-                &[],
-                amount,
-            )?;
-
-            let signer_seeds: &[&[&[u8]]] = &[&[
-                b"mint_authority",
-                &[mint_authority_lamport_bump(program_id)?],
-            ]];
-
-            invoke_signed(
-                &instruction,
-                &[
-                    corten_wallet.clone(),
-                    corten_ata.clone(),
-                    corten_mint.clone(),
-                    spl_token_program.clone(),
-                ],
-                signer_seeds,
-            )?;
-        }
+        TokenInstructions::AskMint { amount } =>
+            mint_tokens(program_id, corten_wallet, corten_ata, corten_mint, spl_token_program, amount),
         TokenInstructions::Instruction2 => {
             msg!("Instruction 2");
+            Ok(())
         }
         TokenInstructions::Instruction3 => {
             msg!("Instruction 3");
+            Ok(())
         }
     }
+}
 
+fn mint_tokens<'a>(
+    program_id: &Pubkey,
+    corten_wallet: &'a AccountInfo<'a>,
+    corten_ata: &'a AccountInfo<'a>,
+    corten_mint: &'a AccountInfo<'a>,
+    spl_token_program: &'a AccountInfo<'a>,
+    amount: u64
+) -> Result<(), ProgramError> {
+    let instruction = mint_to(
+        spl_token_program.key,
+        corten_mint.key,
+        corten_ata.key,
+        corten_wallet.key,
+        &[],
+        amount,
+    )?;
+
+    let signer_seeds: &[&[&[u8]]] = &[&[
+        b"mint_authority",
+        &[mint_authority_lamport_bump(program_id)?],
+    ]];
+
+    invoke_signed(
+        &instruction,
+        &[
+            corten_wallet.clone(),
+            corten_ata.clone(),
+            corten_mint.clone(),
+            spl_token_program.clone(),
+        ],
+        signer_seeds,
+    )?;
     Ok(())
 }
 

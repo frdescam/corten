@@ -18,13 +18,14 @@ fn main() {
     let rpc_client = RpcClient::new("http://localhost:8899");
     let program_id = Pubkey::from_str("ArQLysRL8pKBBMVDid7wuZw4VGrkor5ir6ygi8GHUcCy").unwrap();
     let corten_wallet = read_keypair_file("/home/fdec/.config/solana/id.json").unwrap();
-    let corten_mint = Pubkey::from_str("4tkP2MiygWAqJkrwXd5ENpHLXi2KiQ6ZckyQ8hYPF3j6").unwrap();
+    let corten_mint = Pubkey::from_str("HjippKjftiBk9gEJAwW55ifkQamrCuWHhVwemG7ahX8S").unwrap();
 
     let corten_ata = get_associated_token_address(&corten_wallet.pubkey(), &corten_mint);
+    let amount_to_mint = 500 * 1_000_000;
 
     let instruction = Instruction {
         program_id,
-        data: to_vec(&TokenInstructions::AskMint).unwrap(),
+        data: to_vec(&TokenInstructions::AskMint { amount: amount_to_mint }).unwrap(),
         accounts: vec![
             AccountMeta::new(corten_wallet.pubkey(), true),
             AccountMeta::new(corten_ata, false),
