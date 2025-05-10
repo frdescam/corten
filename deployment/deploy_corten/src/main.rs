@@ -49,6 +49,6 @@ fn main() {
         blockhash,
     );
 
-    let sig = rpc_client.send_and_confirm_transaction(&tx).unwrap();
-    println!("Transaction signature : {}", sig);
+    rpc_client.send_and_confirm_transaction(&tx).unwrap();
+    println!("\nMint account pubkey : {}\n", corten_mint.pubkey().to_string());
 }
