@@ -1,6 +1,7 @@
 use std::{error::Error, str::FromStr};
 
 use solana_client::rpc_client::RpcClient;
+
 use solana_sdk::{
     instruction::{AccountMeta, Instruction},
     native_token::LAMPORTS_PER_SOL,
@@ -32,20 +33,26 @@ pub fn check_balance(rpc_client: &RpcClient, pubkey: &Pubkey) -> Result<f64, Box
     Ok(rpc_client.get_balance(&pubkey)? as f64 / LAMPORTS_PER_SOL as f64)
 }
 
+pub fn read_mint_account(rpc_client: &RpcClient, pubkey: &Pubkey) -> Result<u64, Box<dyn std::error::Error>> {
+    let data = rpc_client.get_account_data(pubkey)?;
+    let amount = u64::from_le_bytes(data[..8].try_into()?);
+    Ok(amount)
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
     let rpc_client = RpcClient::new("http://localhost:8899"); // interagir avec le noeud solana
     let fees_payer = create_keypair(); // celui qui va payer les frais
     let mint_account = create_keypair(); // le compte de mint
 
     // Program id
-    let program_id = Pubkey::from_str("FWEKEyaEyxeceM8Tr8YLMRmJsL9UwYejyeDMp7e8aJTn")?;
+    let program_id = Pubkey::from_str("HpA69wp4k5kEVsVepGDLQkyXPN1pF9of3reQ6WpMbA1x")?;
 
     // Fees Airdrop
     request_airdrop(&rpc_client, &fees_payer.pubkey(), 3.0)?; // 3 SOL
     println!("Fees Payer balance: {:.2}", check_balance(&rpc_client, &fees_payer.pubkey())?); // affiche le solde du fees payer
 
     // eviter que le compte soit supprimer pcq y a pas assez de SOL
-    let mint_account_space = 8; // taille minimale (en octet) pour un compte solana
+    let mint_account_space = 64; // taille minimale (en octet) pour un compte solana
     let mint_account_lamports = rpc_client.get_minimum_balance_for_rent_exemption(mint_account_space)?; // calcul le nombre minimal de Lamports pour eviter le loyer
 
     // instruction pour le mint
@@ -54,7 +61,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         &mint_account.pubkey(),
         mint_account_lamports,
         mint_account_space as u64,
-        &Pubkey::from_str("FWEKEyaEyxeceM8Tr8YLMRmJsL9UwYejyeDMp7e8aJTn")?, // ID du programme
+        &Pubkey::from_str("HpA69wp4k5kEVsVepGDLQkyXPN1pF9of3reQ6WpMbA1x")?, // ID du programme
     );
 
     // construction du mint_instruction
@@ -80,6 +87,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     // confirmation de la signature par le reseau
     let signature = rpc_client.send_and_confirm_transaction(&transaction)?;
     println!("✅ Transaction sent! Signature: {}", signature);
+
+    let balance = read_mint_account(&rpc_client, &mint_account.pubkey())?;
+    println!("💰 Token amount in mint account: {}", balance);
+
     
     Ok(())
 
